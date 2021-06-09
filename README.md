@@ -5,6 +5,10 @@
   - Dockerfile이랑, app.yaml 필요
 
 # 배포하는 법(Heroku)
-* 콘솔에서 heroku login
-* heroku create ins-comp-dashboard(appname) (app 생성)
-* git push heroku master (heroku remote로 push)
+* (로그인(console에서)) heroku login
+* (app 생성) heroku create ins-comp-dashboard(appname)
+* (heroku remote로 push) git push heroku master
+
+## 참고사항
+* (heroku remote repository의 url 확인) git remote get-url heroku
+* (heroku remote repository의 url 변경) git remote set-url heroku https://git.heroku.com/ins-comp-dashboard.git(url)
