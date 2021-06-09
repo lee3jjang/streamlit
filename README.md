@@ -13,3 +13,4 @@
 * (heroku remote repository의 url 확인) `git remote get-url heroku`
 * (heroku remote repository의 url 변경) `git remote set-url heroku https://git.heroku.com/ins-comp-dashboard.git(url)`
 * heroku 배포하다 오류났었는데 `heroku buildpacks:clear`랑 `heroku ps:scale web=1` 명령어로 해결함
+* gcp > app engine > 설정 > `애플리케이션 사용 중지` 클릭 해놓음 (다시 눌르면 접속 가능)
