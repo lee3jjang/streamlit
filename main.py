@@ -6,15 +6,22 @@ import plotly.graph_objs as go
 from plotly.subplots import make_subplots
 from PIL import Image
 
-st.set_page_config(page_title="Streamlit Project Planning", page_icon=':smiley:', layout="wide")
+st.set_page_config(page_title="Streamlit Project Planning", page_icon=':smiley:', layout="centered")
+
+def get_prv_month(yearmonth: str) -> str:
+    year_cur = int(yearmonth[:4])
+    month_cur = int(yearmonth[4:])
+    month_prv = 12 if month_cur==3 else month_cur-3
+    year_prv = year_cur-1 if month_cur==3 else year_cur
+    return f'{year_prv:04}{month_prv:02}'
 
 def main():
     
     # 메뉴
-    menu = st.sidebar.selectbox('메뉴', ['Planning', "현황"], index=1)
+    menu = st.sidebar.selectbox('메뉴', ['계획', "현황"], index=1)
 
     # 계획
-    if menu == "Planning":
+    if menu == "계획":
         st.title("Streamlit Project Planning")
 
         st.header("**Ⅰ. 개요**")
@@ -72,115 +79,128 @@ def main():
     if menu == "현황":
         # 테스트 데이터
         premium = pd.DataFrame([
-            ['202009', '일반', 4000],
-            ['202009', '장기', 14000],
-            ['202009', '자동차', 9000],
-            ['202012', '일반', 5000],
-            ['202012', '장기', 15000],
-            ['202012', '자동차', 10000],
-        ], columns=['base_month', 'lob', 'premium'])
+            ['DB', '202009', '일반', 4000],
+            ['DB', '202009', '장기', 14000],
+            ['DB', '202009', '자동차', 9000],
+            ['DB', '202012', '일반', 5000],
+            ['DB', '202012', '장기', 15000],
+            ['DB', '202012', '자동차', 10000],
+        ], columns=['company', 'base_month', 'lob', 'premium'])
 
         profit = pd.DataFrame([
-            ['202009', '일반', 400],
-            ['202009', '장기', 1400],
-            ['202009', '자동차', 900],
-            ['202012', '일반', 500],
-            ['202012', '장기', 1500],
-            ['202012', '자동차', 1000],
-        ], columns=['base_month', 'lob', 'profit'])
+            ['DB', '202009', '일반', 400],
+            ['DB', '202009', '장기', 1400],
+            ['DB', '202009', '자동차', 900],
+            ['DB', '202012', '일반', 500],
+            ['DB', '202012', '장기', 1500],
+            ['DB', '202012', '자동차', 1000],
+        ], columns=['company', 'base_month', 'lob', 'profit'])
 
         asset = pd.DataFrame([
-            ['202009', '현예금및예치금', 40],
-            ['202009', '유가증권', 140],
-            ['202009', '대출채권', 90],
-            ['202009', '부동산', 50],
-            ['202009', '기타자산', 15],
-            ['202012', '현예금및예치금', 50],
-            ['202012', '유가증권', 150],
-            ['202012', '대출채권', 100],
-            ['202012', '부동산', 60],
-            ['202012', '기타자산', 20],
-        ], columns=['base_month', 'account', 'amount'])
+            ['DB', '202009', '현예금및예치금', 40],
+            ['DB', '202009', '유가증권', 140],
+            ['DB', '202009', '대출채권', 90],
+            ['DB', '202009', '부동산', 50],
+            ['DB', '202009', '기타자산', 15],
+            ['DB', '202012', '현예금및예치금', 50],
+            ['DB', '202012', '유가증권', 150],
+            ['DB', '202012', '대출채권', 100],
+            ['DB', '202012', '부동산', 60],
+            ['DB', '202012', '기타자산', 20],
+        ], columns=['company', 'base_month', 'account', 'amount'])
 
         liability = pd.DataFrame([
-            ['202009', '책임준비금', 40],
-            ['202009', '기타부채', 140],
-            ['202012', '책임준비금', 50],
-            ['202012', '기타부채', 150],
-        ], columns=['base_month', 'account', 'amount'])
+            ['DB', '202009', '책임준비금', 40],
+            ['DB', '202009', '기타부채', 140],
+            ['DB', '202012', '책임준비금', 50],
+            ['DB', '202012', '기타부채', 150],
+        ], columns=['company', 'base_month', 'account', 'amount'])
 
         capital = pd.DataFrame([
-            ['202009', '자본금', 40],
-            ['202009', '자본잉여금', 40],
-            ['202009', '이익잉여금', 50],
-            ['202012', '자본금', 50],
-            ['202012', '자본잉여금', 50],
-            ['202012', '이익잉여금', 60],
-        ], columns=['base_month', 'account', 'amount'])
+            ['DB', '202009', '자본금', 40],
+            ['DB', '202009', '자본잉여금', 40],
+            ['DB', '202009', '이익잉여금', 50],
+            ['DB', '202012', '자본금', 50],
+            ['DB', '202012', '자본잉여금', 50],
+            ['DB', '202012', '이익잉여금', 60],
+        ], columns=['company', 'base_month', 'account', 'amount'])
 
-        indicators = pd.DataFrame([
-            ['202012', '손해율', 90],
-            ['202012', '사업비율', 45],   
-            ['202012', '운용자산이익률', 2],   
-            ['202012', 'RBC비율', 190],   
-            ['202012', '유동성비율', 90],   
-            ['202012', '자산건전성비율', 20],   
-            ['202012', '손해율', 100],
-            ['202012', '사업비율', 50],   
-            ['202012', '운용자산이익률', 3],   
-            ['202012', 'RBC비율', 200],   
-            ['202012', '유동성비율', 100],   
-            ['202012', '자산건전성비율', 30],   
-        ], columns=['base_month', 'account', 'value'])
+        raas = pd.DataFrame([
+            ['DB', '202009', '손해율', 2],
+            ['DB', '202009', '사업비율', 2],   
+            ['DB', '202009', '운용자산이익률', 3],   
+            ['DB', '202009', 'RBC비율', 3],   
+            ['DB', '202009', '유동성비율', 3],   
+            ['DB', '202009', '자산건전성비율', 3],   
+            ['DB', '202012', '손해율', 3],
+            ['DB', '202012', '사업비율', 2],   
+            ['DB', '202012', '운용자산이익률', 3],   
+            ['DB', '202012', 'RBC비율', 3],   
+            ['DB', '202012', '유동성비율', 4],   
+            ['DB', '202012', '자산건전성비율', 5],   
+        ], columns=['company', 'base_month', 'account', 'value'])
 
-        col1, col2 = st.beta_columns((2, 1))
-
+        # 입력
+        col1, col2 = st.beta_columns(2)
         with col1:
-            # 그림1
-            fig1 = make_subplots(rows=1, cols=2)
-
-            ## 매출
-            prem_cur = premium.query('base_month=="202012"')
-            prem_prv = premium.query('base_month=="202009"')
-            fig1.add_trace(go.Bar(x=prem_prv['lob'], y=prem_prv['premium']), row=1, col=1)
-            fig1.add_trace(go.Bar(x=prem_cur['lob'], y=prem_cur['premium']), row=1, col=1)
-
-            ## 손익
-            profit_cur = profit.query('base_month=="202012"')
-            profit_prv = profit.query('base_month=="202009"')
-            fig1.add_trace(go.Bar(x=profit_prv['lob'], y=profit_prv['profit']), row=1, col=2)
-            fig1.add_trace(go.Bar(x=profit_cur['lob'], y=profit_cur['profit']), row=1, col=2)
-
-            st.plotly_chart(fig1)
-
-            # 그림2
-            fig2 = make_subplots(rows=1, cols=3, specs=[[{'type': 'pie'}, {'type': 'pie'}, {'type': 'pie'}]])
-
-            ## 자산
-            asset_cur = asset.query('base_month=="202012"')
-            fig2.add_trace(go.Pie(values=asset_cur['amount'], labels=asset_cur['account']), row=1, col=1)
-
-            ## 부채
-            liab_cur = liability.query('base_month=="202012"')
-            fig2.add_trace(go.Pie(values=liab_cur['amount'], labels=liab_cur['account']), row=1, col=2)
-
-            ## 자본
-            cap_cur = capital.query('base_month=="202012"')
-            fig2.add_trace(go.Pie(values=cap_cur['amount'], labels=cap_cur['account']), row=1, col=3)
-
-            st.plotly_chart(fig2)
-        
+            company = st.selectbox('회사', ['DB'])
         with col2:
-            # 그림3
-            fig3 = make_subplots(rows=1, cols=1, specs=[[{'type': 'scatterpolar'}]])
+            base_month = st.selectbox('기준년월', ['202012'])
+            prv_month = get_prv_month(base_month)
 
-            ## 경영효율지표
-            indi_cur = indicators.query('base_month=="202012"')
-            indi_prv = indicators.query('base_month=="202009"')
-            fig3.add_trace(go.Scatterpolar(r=indi_prv['value'], theta=indi_prv['account'], fill='toself'), row=1, col=1)
-            fig3.add_trace(go.Scatterpolar(r=indi_cur['value'], theta=indi_cur['account'], fill='toself'), row=1, col=1)
 
-            st.plotly_chart(fig3)
+        # 그림1
+        st.header("**Ⅰ. 재무상태**")
+        st.markdown("Suspendisse at egestas risus, sed porta massa. Pellentesque consequat tortor purus, quis luctus urna dignissim a. Nulla suscipit odio nec augue tristique, at iaculis orci molestie. Donec viverra sagittis justo et hendrerit. Integer elementum libero diam, et laoreet libero tincidunt non. Etiam nulla mauris, malesuada at ultrices vel, laoreet in nisl. Ut nec maximus orci. Sed quis elit porttitor arcu rutrum dignissim nec vitae odio. Duis dictum ultrices metus placerat porttitor. Duis eget enim vitae mauris faucibus feugiat. Suspendisse vitae porta risus, sit amet hendrerit est. Quisque maximus congue mauris, vel pellentesque quam rhoncus quis. Fusce bibendum justo eu dignissim ornare.")
+        fig1 = make_subplots(rows=1, cols=3, specs=[[{'type': 'pie'}, {'type': 'pie'}, {'type': 'pie'}]])
+
+        ## 자산
+        asset_cur = asset.query('base_month==@base_month & company == @company')
+        fig1.add_trace(go.Pie(values=asset_cur['amount'], labels=asset_cur['account']), row=1, col=1)
+
+        ## 부채
+        liab_cur = liability.query('base_month==@base_month & company == @company')
+        fig1.add_trace(go.Pie(values=liab_cur['amount'], labels=liab_cur['account']), row=1, col=2)
+
+        ## 자본
+        cap_cur = capital.query('base_month==@base_month & company == @company')
+        fig1.add_trace(go.Pie(values=cap_cur['amount'], labels=cap_cur['account']), row=1, col=3)
+
+        st.plotly_chart(fig1)
+    
+
+        # 그림2
+        st.header("**Ⅱ. 매출 및 손익**")
+        st.markdown("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam eget congue dolor, vel suscipit tellus. Morbi scelerisque rutrum urna, elementum tempor erat sodales eu. Vestibulum massa turpis, interdum eget tincidunt non, tincidunt et dolor. Suspendisse ut dui eleifend, ultrices ex ultrices, interdum tellus. Nulla viverra nulla velit, ut dignissim sem sodales efficitur. Quisque fringilla malesuada eros, non blandit quam molestie quis. Aliquam non sem id purus facilisis consectetur ac vestibulum risus. Donec volutpat euismod lectus at ultrices. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Vestibulum aliquam laoreet urna, sed bibendum augue venenatis eu. Ut ut egestas mi. Nunc quis aliquam libero.")
+        fig2 = make_subplots(rows=1, cols=2)
+
+        ## 매출
+        prem_cur = premium.query('base_month==@base_month & company == @company')
+        prem_prv = premium.query('base_month==@prv_month & company == @company')
+        fig2.add_trace(go.Bar(x=prem_prv['lob'], y=prem_prv['premium']), row=1, col=1)
+        fig2.add_trace(go.Bar(x=prem_cur['lob'], y=prem_cur['premium']), row=1, col=1)
+
+        ## 손익
+        profit_cur = profit.query('base_month==@base_month & company == @company')
+        profit_prv = profit.query('base_month==@prv_month & company == @company')
+        fig2.add_trace(go.Bar(x=profit_prv['lob'], y=profit_prv['profit']), row=1, col=2)
+        fig2.add_trace(go.Bar(x=profit_cur['lob'], y=profit_cur['profit']), row=1, col=2)
+
+        st.plotly_chart(fig2)
+
+
+        # 그림3
+        st.header("**Ⅲ. 경영지표**")
+        st.markdown("Etiam sollicitudin magna at metus malesuada sagittis. Nulla lectus purus, suscipit nec leo a, consectetur suscipit lectus. Suspendisse ut orci lobortis, iaculis mauris vitae, feugiat arcu. Phasellus auctor suscipit turpis id pharetra. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Suspendisse potenti. Etiam rutrum congue sollicitudin. Nullam dictum consequat est ac tristique. Nulla facilisi. Mauris semper orci eu feugiat interdum. Sed facilisis bibendum justo, sed lobortis ligula placerat vitae. Pellentesque sed ex eget erat iaculis lacinia. Quisque nibh nibh, interdum non ex vitae, hendrerit efficitur ipsum. Cras pharetra vitae lorem non euismod. Vestibulum eu scelerisque eros. Nunc non tortor sit amet lorem auctor laoreet.")
+        fig3 = make_subplots(rows=1, cols=1, specs=[[{'type': 'scatterpolar'}]])
+
+        ## RAAS등급
+        raas_cur = raas.query('base_month==@base_month & company == @company')
+        raas_prv = raas.query('base_month==@prv_month & company == @company')
+        fig3.add_trace(go.Scatterpolar(r=raas_prv['value'], theta=raas_prv['account'], fill='toself'), row=1, col=1)
+        fig3.add_trace(go.Scatterpolar(r=raas_cur['value'], theta=raas_cur['account'], fill='toself'), row=1, col=1)
+
+        st.plotly_chart(fig3)
 
 if __name__ == '__main__':
     main()
