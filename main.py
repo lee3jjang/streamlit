@@ -1,5 +1,5 @@
-import urllib
 import json
+import urllib
 import numpy as np
 import pandas as pd
 import streamlit as st
@@ -11,7 +11,7 @@ from PIL import Image
 # DB: 0010636, 삼성: 0010633, 현대: 0010634, KB: 0010635, 메리츠: 0010626
 # (SI003) A11: 현예금, A12: 유가증권, A14: 대출채권, A15: 부동산, A21: 고정자산, A22: 기타자산, A3: 특별계정자산
 AUTH = '7774090942ede970746a7cd9b2e10577'
-st.set_page_config(page_title="Streamlit Project Planning", page_icon=':smiley:', layout="centered")
+st.set_page_config(page_title="손해보험회사 현황 대시보드", page_icon=':smiley:', layout="centered")
 
 # 사용자정의 함수
 def get_comp_code(company: str) -> str:
@@ -95,12 +95,19 @@ def main():
         > 6) 경영지표: 기준년월(당월/전월), 지표구분, 값
         """)
 
-
         st.header("** Ⅲ. 개발 순서**")
         st.markdown("""
             1. 임의의 입력값이 주어질 때 Dashboard 만드는 프로그램
             2. 조건 레이아웃 있는 프로그램
             3. 데이터 수집 프로그램
+        """)
+
+        st.header("** Ⅳ. TODO**")
+        st.markdown("""
+            * (2021.06.09) 시각화 다듬기
+            * (2021.06.09) 리포트 문구 만들기
+            * (2021.06.09) 헤로쿠 배포
+            * (2021.06.09) 항목 추가하기
         """)
     
     if menu == "회사현황":
@@ -238,7 +245,7 @@ def main():
 
 
         # 그림3
-        st.header("**Ⅲ. 경영지표**")
+        st.header("**Ⅲ. 경영효율지표**")
         st.markdown("Etiam sollicitudin magna at metus malesuada sagittis. Nulla lectus purus, suscipit nec leo a, consectetur suscipit lectus. Suspendisse ut orci lobortis, iaculis mauris vitae, feugiat arcu. Phasellus auctor suscipit turpis id pharetra. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Suspendisse potenti. Etiam rutrum congue sollicitudin. Nullam dictum consequat est ac tristique. Nulla facilisi. Mauris semper orci eu feugiat interdum. Sed facilisis bibendum justo, sed lobortis ligula placerat vitae. Pellentesque sed ex eget erat iaculis lacinia. Quisque nibh nibh, interdum non ex vitae, hendrerit efficitur ipsum. Cras pharetra vitae lorem non euismod. Vestibulum eu scelerisque eros. Nunc non tortor sit amet lorem auctor laoreet.")
         fig3 = make_subplots(rows=1, cols=1, specs=[[{'type': 'table'}]])
 
