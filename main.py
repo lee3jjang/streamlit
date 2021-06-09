@@ -1,12 +1,22 @@
-import streamlit as st
-import pandas as pd
+import urllib
+import json
 import numpy as np
-import plotly.express as px
+import pandas as pd
+import streamlit as st
 import plotly.graph_objs as go
 from plotly.subplots import make_subplots
 from PIL import Image
 
+# 환경설정
+# DB: 0010636, 삼성: 0010633, 현대: 0010634, KB: 0010635, 메리츠: 0010626
+# (SI003) A11: 현예금, A12: 유가증권, A14: 대출채권, A15: 부동산, A21: 고정자산, A22: 기타자산, A3: 특별계정자산
+AUTH = '7774090942ede970746a7cd9b2e10577'
 st.set_page_config(page_title="Streamlit Project Planning", page_icon=':smiley:', layout="centered")
+
+# 사용자정의 함수
+def get_comp_code(company: str) -> str:
+    comp_mapper = {'DB': '0010636', '삼성': '0010633', '현대': '0010634', 'KB': '0010635', '메리츠': '0010626'}
+    return comp_mapper.get(company)
 
 def get_prv_month(yearmonth: str) -> str:
     year_cur = int(yearmonth[:4])
@@ -15,10 +25,27 @@ def get_prv_month(yearmonth: str) -> str:
     year_prv = year_cur-1 if month_cur==3 else year_cur
     return f'{year_prv:04}{month_prv:02}'
 
+def get_stats(service: str, params: dict = {}) -> pd.DataFrame:
+    if service == 'companySearch':
+        params['partDiv'] = 'I'
+    elif service == 'statisticsListSearch':
+        params['lrgDiv'] = 'I'
+    params['lang'] = 'kr'
+    params['auth'] = AUTH
+    tmp = []
+    for k, v in params.items():
+        tmp.append(k + "=" + v)
+    query = '&'.join(tmp)
+    url = f'http://fisis.fss.or.kr/openapi/{service}.json?{query}'
+    res = urllib.request.urlopen(url)
+    data = json.loads(res.read())
+    df = pd.DataFrame(data['result']['list'])
+    return df
+
 def main():
     
     # 메뉴
-    menu = st.sidebar.selectbox('메뉴', ['계획', "회사 현황"], index=1)
+    menu = st.sidebar.selectbox('메뉴', ['계획', "회사현황"], index=1)
 
     # 계획
     if menu == "계획":
@@ -76,80 +103,98 @@ def main():
             3. 데이터 수집 프로그램
         """)
     
-    if menu == "회사 현황":
-        st.markdown("<h1 style='text-align: center; color: black;'><b>회사 현황</b></h1><br>", unsafe_allow_html=True)
-
-
-        # 테스트 데이터
-        premium = pd.DataFrame([
-            ['DB', '202009', '일반', 4000],
-            ['DB', '202009', '장기', 14000],
-            ['DB', '202009', '자동차', 9000],
-            ['DB', '202012', '일반', 5000],
-            ['DB', '202012', '장기', 15000],
-            ['DB', '202012', '자동차', 10000],
-        ], columns=['company', 'base_month', 'lob', 'premium'])
-
-        profit = pd.DataFrame([
-            ['DB', '202009', '일반', 400],
-            ['DB', '202009', '장기', 1400],
-            ['DB', '202009', '자동차', 900],
-            ['DB', '202012', '일반', 500],
-            ['DB', '202012', '장기', 1500],
-            ['DB', '202012', '자동차', 1000],
-        ], columns=['company', 'base_month', 'lob', 'profit'])
-
-        asset = pd.DataFrame([
-            ['DB', '202009', '현예금및예치금', 40],
-            ['DB', '202009', '유가증권', 140],
-            ['DB', '202009', '대출채권', 90],
-            ['DB', '202009', '부동산', 50],
-            ['DB', '202009', '기타자산', 15],
-            ['DB', '202012', '현예금및예치금', 50],
-            ['DB', '202012', '유가증권', 150],
-            ['DB', '202012', '대출채권', 100],
-            ['DB', '202012', '부동산', 60],
-            ['DB', '202012', '기타자산', 20],
-        ], columns=['company', 'base_month', 'account', 'amount'])
-
-        liability = pd.DataFrame([
-            ['DB', '202009', '책임준비금', 40],
-            ['DB', '202009', '기타부채', 140],
-            ['DB', '202012', '책임준비금', 50],
-            ['DB', '202012', '기타부채', 150],
-        ], columns=['company', 'base_month', 'account', 'amount'])
-
-        capital = pd.DataFrame([
-            ['DB', '202009', '자본금', 40],
-            ['DB', '202009', '자본잉여금', 40],
-            ['DB', '202009', '이익잉여금', 50],
-            ['DB', '202012', '자본금', 50],
-            ['DB', '202012', '자본잉여금', 50],
-            ['DB', '202012', '이익잉여금', 60],
-        ], columns=['company', 'base_month', 'account', 'amount'])
-
-        raas = pd.DataFrame([
-            ['DB', '202009', '손해율', 2],
-            ['DB', '202009', '사업비율', 2],   
-            ['DB', '202009', '운용자산이익률', 3],   
-            ['DB', '202009', 'RBC비율', 3],   
-            ['DB', '202009', '유동성비율', 3],   
-            ['DB', '202009', '자산건전성비율', 3],   
-            ['DB', '202012', '손해율', 3],
-            ['DB', '202012', '사업비율', 2],   
-            ['DB', '202012', '운용자산이익률', 3],   
-            ['DB', '202012', 'RBC비율', 3],   
-            ['DB', '202012', '유동성비율', 4],   
-            ['DB', '202012', '자산건전성비율', 5],   
-        ], columns=['company', 'base_month', 'account', 'value'])
+    if menu == "회사현황":
+        st.markdown("<h1 style='text-align: center; color: black;'><b>회사현황</b></h1><br>", unsafe_allow_html=True)
 
         # 입력
         col1, col2 = st.beta_columns(2)
         with col1:
-            company = st.selectbox('회사', ['DB'])
+            company = st.selectbox('회사', ['삼성', 'DB', '현대', 'KB', '메리츠'])
         with col2:
-            base_month = st.selectbox('기준년월', ['202012'])
+            base_month = st.selectbox('기준년월', ['202012', '202009', '202006', '202003', '201912'], index=0)
             prv_month = get_prv_month(base_month)
+        
+        # 공통 매개변수
+        params = {}
+        params['term'] = 'Q'
+        params['startBaseMm'] = prv_month
+        params['endBaseMm'] = base_month
+        params['financeCd'] = get_comp_code(company)
+
+        # 데이터 수집
+        # company_list = get_stats('companySearch')
+        # rpt_list = get_stats('statisticsListSearch')
+        
+        # 자산
+        params['listNo'] = 'SI003'
+        asset = get_stats('statisticsInfoSearch', params) \
+            .query('account_cd in ["A11", "A12", "A14", "A15", "A21", "A22", "A3"]') \
+            .astype({'a': float}) \
+            .assign(account = lambda x: x.account_nm.str.replace('[(|)| |ㆍ]', '', regex=True)) \
+            .assign(a = lambda x: np.round(x.a/1e12,1)) \
+            .assign(company = company) \
+            .rename(columns={'a': 'amount'}) \
+            .filter(['company', 'base_month', 'account', 'amount'], axis=1)
+
+        # 매출
+        params['listNo'] = 'SI138'
+        premium = get_stats('statisticsInfoSearch', params) \
+            .query('account_nm != "합계"') \
+            .astype({'a': float}) \
+            .assign(a = lambda x: np.round(x.a/1e12,1)) \
+            .assign(company = company) \
+            .rename(columns={'a': 'amount', 'account_nm': 'lob'}) \
+            .filter(['company', 'base_month', 'lob', 'amount'], axis=1)
+
+        # 수익
+        params['listNo'] = 'SI137'
+        profit = get_stats('statisticsInfoSearch', params) \
+            .query('account_nm not in ["당기순이익", "보험손익"]') \
+            .astype({'a': float}) \
+            .assign(account_nm = lambda x: x.account_nm.str.replace('_', '(', regex=True)) \
+            .assign(account_nm = lambda x: x.account_nm.str.replace('보험$', ')', regex=True)) \
+            .assign(a = lambda x: np.round(x.a/1e8,1)) \
+            .assign(company = company) \
+            .rename(columns={'a': 'amount', 'account_nm': 'lob'}) \
+            .filter(['company', 'base_month', 'lob', 'amount'], axis=1)
+
+        # 경영효율지표        
+        params['listNo'] = 'SI114'
+        indicator = get_stats('statisticsInfoSearch', params) \
+            .query('account_nm in ["경과손해율", "순사업비율", "운용자산이익률", "영업이익률", "총자산순이익률"]') \
+            .astype({'a': float}) \
+            .assign(company = company) \
+            .rename(columns={'a': 'value', 'account_nm': 'account'}) \
+            .pivot_table(index='account', columns='base_month', values='value', aggfunc=np.sum) \
+            .filter([prv_month, base_month], axis=1) \
+            .assign(증감 = lambda x: np.round(x[base_month] - x[prv_month], 2)) \
+            .rename(columns={prv_month: f'\'{prv_month[2:4]}.{prv_month[4:]}', base_month: f'\'{base_month[2:4]}.{base_month[4:]}'}) \
+            .rename_axis('항목').reset_index()
+
+        # 손익발생원천분석(TODO: 추가 작업)
+        # params['listNo'] = 'SI132'
+        # df = get_stats('statisticsInfoSearch', params)
+        # st.dataframe(df)
+
+        # 부채
+        params['listNo'] = 'SI004'
+        liability = get_stats('statisticsInfoSearch', params) \
+            .query('account_cd in ["A1111", "A1112", "A1113", "A1114", "A1115", "A1116", "A1117", "A1118", "A12"]') \
+            .assign(account_nm = lambda x: x.account_nm.str.replace('보험계약준비금_책임준비금_', '', regex=True)) \
+            .assign(a = lambda x: np.round(np.where(x.a==' ', '0', x.a).astype(float)/1e12,1)) \
+            .assign(company = company) \
+            .rename(columns={'a': 'amount', 'account_nm': 'account'}) \
+            .filter(['company', 'base_month', 'account', 'amount'], axis=1)
+
+        # 자본
+        params['listNo'] = 'SI004'
+        capital = get_stats('statisticsInfoSearch', params) \
+            .query('account_cd in ["A21", "A22", "A23", "A24", "A25", "A26", "A27"]') \
+            .assign(account = lambda x: x.account_nm.str.replace('\s', '', regex=True)) \
+            .assign(company = company) \
+            .assign(a = lambda x: np.round(np.where(x.a==' ', '0', x.a).astype(float)/1e12,1)) \
+            .rename(columns={'a': 'amount'}) \
+            .filter(['company', 'base_month', 'account', 'amount'], axis=1)
 
 
         # 그림1
@@ -180,14 +225,14 @@ def main():
         ## 매출
         prem_cur = premium.query('base_month==@base_month & company == @company')
         prem_prv = premium.query('base_month==@prv_month & company == @company')
-        fig2.add_trace(go.Bar(x=prem_prv['lob'], y=prem_prv['premium']), row=1, col=1)
-        fig2.add_trace(go.Bar(x=prem_cur['lob'], y=prem_cur['premium']), row=1, col=1)
+        fig2.add_trace(go.Bar(x=prem_prv['lob'], y=prem_prv['amount']), row=1, col=1)
+        fig2.add_trace(go.Bar(x=prem_cur['lob'], y=prem_cur['amount']), row=1, col=1)
 
         ## 손익
         profit_cur = profit.query('base_month==@base_month & company == @company')
         profit_prv = profit.query('base_month==@prv_month & company == @company')
-        fig2.add_trace(go.Bar(x=profit_prv['lob'], y=profit_prv['profit']), row=1, col=2)
-        fig2.add_trace(go.Bar(x=profit_cur['lob'], y=profit_cur['profit']), row=1, col=2)
+        fig2.add_trace(go.Bar(x=profit_prv['lob'], y=profit_prv['amount']), row=1, col=2)
+        fig2.add_trace(go.Bar(x=profit_cur['lob'], y=profit_cur['amount']), row=1, col=2)
 
         st.plotly_chart(fig2)
 
@@ -195,13 +240,13 @@ def main():
         # 그림3
         st.header("**Ⅲ. 경영지표**")
         st.markdown("Etiam sollicitudin magna at metus malesuada sagittis. Nulla lectus purus, suscipit nec leo a, consectetur suscipit lectus. Suspendisse ut orci lobortis, iaculis mauris vitae, feugiat arcu. Phasellus auctor suscipit turpis id pharetra. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Suspendisse potenti. Etiam rutrum congue sollicitudin. Nullam dictum consequat est ac tristique. Nulla facilisi. Mauris semper orci eu feugiat interdum. Sed facilisis bibendum justo, sed lobortis ligula placerat vitae. Pellentesque sed ex eget erat iaculis lacinia. Quisque nibh nibh, interdum non ex vitae, hendrerit efficitur ipsum. Cras pharetra vitae lorem non euismod. Vestibulum eu scelerisque eros. Nunc non tortor sit amet lorem auctor laoreet.")
-        fig3 = make_subplots(rows=1, cols=1, specs=[[{'type': 'scatterpolar'}]])
+        fig3 = make_subplots(rows=1, cols=1, specs=[[{'type': 'table'}]])
 
-        ## RAAS등급
-        raas_cur = raas.query('base_month==@base_month & company == @company')
-        raas_prv = raas.query('base_month==@prv_month & company == @company')
-        fig3.add_trace(go.Scatterpolar(r=raas_prv['value'], theta=raas_prv['account'], fill='toself'), row=1, col=1)
-        fig3.add_trace(go.Scatterpolar(r=raas_cur['value'], theta=raas_cur['account'], fill='toself'), row=1, col=1)
+        ## 경영효율지표
+        fig3.add_trace(go.Table(
+            header=dict(values=list(indicator.columns)),
+            cells=dict(values=[indicator.iloc[:, 0], indicator.iloc[:, 1], indicator.iloc[:, 2], indicator.iloc[:, 3]])
+        ), row=1, col=1)  
 
         st.plotly_chart(fig3)
 
