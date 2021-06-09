@@ -4,4 +4,6 @@
 3 requirements.txt
 
 # 배포하는 법
-* heroku git:remote -a inscomp
+* heroku login
+* heroku create inscomp-dashboard-app
+* git add .
