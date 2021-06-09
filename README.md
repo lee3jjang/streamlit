@@ -4,4 +4,4 @@
 3 requirements.txt
 
 # 배포하는 법
-* heroku git:remote -a lee3jjang
+* heroku git:remote -a inscomp
