@@ -18,7 +18,7 @@ def get_prv_month(yearmonth: str) -> str:
 def main():
     
     # 메뉴
-    menu = st.sidebar.selectbox('메뉴', ['계획', "현황"], index=1)
+    menu = st.sidebar.selectbox('메뉴', ['계획', "회사 현황"], index=1)
 
     # 계획
     if menu == "계획":
@@ -76,7 +76,10 @@ def main():
             3. 데이터 수집 프로그램
         """)
     
-    if menu == "현황":
+    if menu == "회사 현황":
+        st.markdown("<h1 style='text-align: center; color: black;'><b>회사 현황</b></h1><br>", unsafe_allow_html=True)
+
+
         # 테스트 데이터
         premium = pd.DataFrame([
             ['DB', '202009', '일반', 4000],
